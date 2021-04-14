@@ -195,7 +195,7 @@ mod tests {
     use crate::cfg;
     use crate::db;
     use std::error::Error;
-    const CFG_PATH: &str = "../config.json";
+    const CFG_PATH: &str = "../infuser_config.json";
 
     #[test]
     fn it_works() {
