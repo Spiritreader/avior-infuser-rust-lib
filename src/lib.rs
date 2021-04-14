@@ -1,5 +1,7 @@
 pub mod cfg;
 pub mod db;
+pub mod log;
+
 use std::{
     collections::{BTreeMap, HashMap},
     error::Error,
@@ -27,7 +29,7 @@ impl Error for InfuserError {}
 pub fn get_eligible_client(
     grouped_clients: BTreeMap<i32, Vec<&db::Client>>,
     machine_jobcounts: HashMap<String, i32>,
-) -> Result<String, Box<dyn Error>> {
+) -> Result<(String, i32, i32), Box<dyn Error>> {
     for (_, clients) in grouped_clients {
         let mut job_count = i32::MAX;
         let mut eligible: Option<db::Client> = None;
@@ -61,11 +63,7 @@ pub fn get_eligible_client(
         // return it, otherwise move on to the next one
         match eligible {
             Some(client) => {
-                println!(
-                    "found eligible client {} with {}/{} job(s) and priority {}",
-                    client.name, job_count, client.maximum_jobs, client.priority
-                );
-                return Ok(client.id.to_owned().unwrap().to_string());
+                return Ok((client.id.to_owned().unwrap().to_string(), job_count, client.maximum_jobs));
             }
             None => (),
         }
