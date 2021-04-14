@@ -1,11 +1,11 @@
+use chrono;
 use std::error::Error;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
-use chrono;
 
 pub struct Logger {
     buffer: Vec<String>,
-    kopfer: String
+    kopfer: String,
 }
 
 pub enum Mode {
@@ -20,16 +20,20 @@ pub trait Log {
     fn flush(&mut self, path: &str, mode: Mode) -> Result<(), Box<dyn Error>>;
 }
 
-impl Logger { }
+impl Logger {}
 
 impl Log for Logger {
     /// Creates a new Logger instance
     fn new(kopferino: &str) -> Self {
-        Logger { buffer: Vec::new(), kopfer: kopferino.to_owned() }
+        Logger {
+            buffer: Vec::new(),
+            kopfer: kopferino.to_owned(),
+        }
     }
 
     /// Appends a line to the log buffer
     fn add(&mut self, message: &str) {
+        println!("{}", message);
         self.buffer.push(message.into())
     }
 
@@ -49,8 +53,12 @@ impl Log for Logger {
             Mode::Overwrite => false,
         };
         let mut logfile = OpenOptions::new().write(true).append(append).create(true).open(path)?;
+        writeln!(
+            logfile,
+            "{}",
+            chrono::offset::Local::now().format("%Y-%m-%d %H:%M:%S %z").to_string()
+        )?;
         writeln!(logfile, "{}", self.kopfer)?;
-        writeln!(logfile, "{:?}", chrono::offset::Local::now())?;
         for line in self.buffer.iter() {
             writeln!(logfile, "{}", line)?;
         }
