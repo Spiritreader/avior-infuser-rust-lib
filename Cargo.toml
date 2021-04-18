@@ -2,7 +2,7 @@
 authors = ["Sam <earthstamper@gmail.com>"]
 edition = "2018"
 name = "avior_infuser_lib"
-version = "2.1.0"
+version = "3.0.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
