@@ -1,18 +1,18 @@
 [package]
-name = "avior_infuser_lib"
-version = "1.0.0"
 authors = ["Sam <earthstamper@gmail.com>"]
 edition = "2018"
+name = "avior_infuser_lib"
+version = "2.0.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies.mongodb]
-version = "1.2.1"
 default-features = false
 features = ["sync"]
+version = "1.2.1"
 
 [dependencies]
-serde = "1.0.125"
-serde_json = "1.0"
 bson = "1.2.2"
 chrono = "0.4.19"
+serde = "1.0.125"
+serde_json = "1.0"

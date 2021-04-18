@@ -26,7 +26,7 @@ impl fmt::Display for InfuserError {
 
 impl Error for InfuserError {}
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Hash, Eq)]
 #[serde(rename_all = "PascalCase")]
 pub struct Client {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
@@ -38,6 +38,15 @@ pub struct Client {
     pub priority: i32,
     pub online: bool,
     pub ignore_online: bool,
+}
+
+impl PartialEq for Client {
+    fn eq(&self, other: &Self) -> bool {
+        if self.id.is_none() && other.id.is_none() {
+            return self.name == other.name;
+        }
+        self.id == other.id
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -132,38 +141,30 @@ fn convert_oid<S>(x: &bson::oid::ObjectId, s: S) -> Result<S::Ok, S::Error> wher
 /// - that is online or has the ignore_online flag enabled
 /// - that hasn't reached its maximum job count
 pub fn get_eligible_client(
-    grouped_clients: BTreeMap<i32, Vec<&Client>>,
-    machine_jobcounts: HashMap<String, i32>,
-) -> Result<(String, i32, i32), Box<dyn Error>> {
+    grouped_clients: BTreeMap<i32, HashMap<&Client, Option<i32>>>
+) -> Result<(&Client, i32, i32), Box<dyn Error>> {
     for (_, clients) in grouped_clients {
-        let mut job_count = i32::MAX;
+        let mut eligible_job_count = i32::MAX;
         let mut eligible: Option<&Client> = None;
-        for client in clients {
-            let key = client
-                .id
-                .to_owned()
-                .ok_or(InfuserError {
-                    message: "a client in the database has no id, could not determine eligible clients".to_string(),
-                })?
-                .to_string();
+        for (client, current_job_count) in clients {
             if !client.online && !client.ignore_online {
                 continue;
             }
-            if let Some(count) = machine_jobcounts.get(&key) {
-                if *count < job_count && *count < client.maximum_jobs {
+            if let Some(count) = current_job_count {
+                if count < eligible_job_count && count < client.maximum_jobs {
                     eligible = Some(client);
-                    job_count = *count;
+                    eligible_job_count = count;
                 }
             } else {
                 eligible = Some(client);
-                job_count = 0;
+                eligible_job_count = 0;
             }
         }
         // if a client was found within the priority group,
         // return it, otherwise move on to the next one
         match eligible {
             Some(client) => {
-                return Ok((client.id.to_owned().unwrap().to_string(), job_count, client.maximum_jobs));
+                return Ok((client, eligible_job_count, client.maximum_jobs));
             }
             None => (),
         }
@@ -174,11 +175,13 @@ pub fn get_eligible_client(
     }))
 }
 
-pub fn group_clients(client_vec: &Vec<Client>) -> BTreeMap<i32, Vec<&Client>> {
+pub fn group_clients(client_vec: &Vec<Client>, machine_jobcounts: HashMap<String, i32>) -> BTreeMap<i32, HashMap<&Client, Option<i32>>> {
     let mut dict = BTreeMap::new();
     for client in client_vec {
         let prio = client.priority;
-        dict.entry(prio).or_insert(Vec::new()).push(client);
+        let client_id_string = client.id.to_owned().unwrap_or_default().to_string();
+        let job_count = machine_jobcounts.get(&client_id_string).and_then(|count| Some(count.to_owned()));
+        dict.entry(prio).or_insert(HashMap::new()).insert(client, job_count);
         /*
         match dict.entry(prio) {
             Entry::Vacant(e) => e.insert(vec![client]);
