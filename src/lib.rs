@@ -1,5 +1,6 @@
 pub mod db;
 pub mod log;
+pub use mongodb::sync::Client as MongoClient;
 
 use std::{
     collections::{BTreeMap, HashMap},
