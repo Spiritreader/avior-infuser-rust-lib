@@ -141,7 +141,7 @@ fn convert_oid<S>(x: &bson::oid::ObjectId, s: S) -> Result<S::Ok, S::Error> wher
 /// - that is online or has the ignore_online flag enabled
 /// - that hasn't reached its maximum job count
 pub fn get_eligible_client(
-    grouped_clients: BTreeMap<i32, HashMap<&Client, Option<i32>>>
+    grouped_clients: &BTreeMap<i32, HashMap<Client, Option<i32>>>
 ) -> Result<(&Client, i32, i32), Box<dyn Error>> {
     for (_, clients) in grouped_clients {
         let mut eligible_job_count = i32::MAX;
@@ -151,9 +151,9 @@ pub fn get_eligible_client(
                 continue;
             }
             if let Some(count) = current_job_count {
-                if count < eligible_job_count && count < client.maximum_jobs {
+                if *count < eligible_job_count && *count < client.maximum_jobs {
                     eligible = Some(client);
-                    eligible_job_count = count;
+                    eligible_job_count = *count;
                 }
             } else {
                 eligible = Some(client);
@@ -175,7 +175,7 @@ pub fn get_eligible_client(
     }))
 }
 
-pub fn group_clients(client_vec: &Vec<Client>, machine_jobcounts: HashMap<String, i32>) -> BTreeMap<i32, HashMap<&Client, Option<i32>>> {
+pub fn group_clients(client_vec: Vec<Client>, machine_jobcounts: HashMap<String, i32>) -> BTreeMap<i32, HashMap<Client, Option<i32>>> {
     let mut dict = BTreeMap::new();
     for client in client_vec {
         let prio = client.priority;
