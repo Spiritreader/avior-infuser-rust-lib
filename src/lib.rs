@@ -1,4 +1,3 @@
-pub mod cfg;
 pub mod db;
 pub mod log;
 
@@ -192,10 +191,8 @@ pub fn group_clients(client_vec: &Vec<Client>) -> BTreeMap<i32, Vec<&Client>> {
 
 #[cfg(test)]
 mod tests {
-    use crate::cfg;
     use crate::db;
     use std::error::Error;
-    const CFG_PATH: &str = "../infuser_config.json";
 
     #[test]
     fn it_works() {
@@ -204,8 +201,7 @@ mod tests {
 
     #[test]
     fn test_insert() -> Result<(), Box<dyn Error>> {
-        let config = cfg::read(CFG_PATH)?;
-        let mongo_client = db::connect(&config)?;
+        let mongo_client = db::connect("mongodb://192.168.178.75:27107")?;
         if let Some(res) = db::get_clients(&mongo_client, &config.db_name)?.get(0) {
             let iid = db::insert_job(&mongo_client, &config.db_name, res, 
                 &mut db::Job {

@@ -1,4 +1,3 @@
-use crate::cfg::Config;
 use crate::Client;
 use crate::Job;
 use mongodb::{
@@ -8,10 +7,10 @@ use mongodb::{
 };
 use std::{collections::HashMap, error::Error};
 
-pub fn connect(cfg: &Config) -> Result<MongoClient, MongoError> {
+pub fn connect(uri: &str) -> Result<MongoClient, MongoError> {
     //let conn_url = format!("mongodb://{}/", cfg.db_url);
     //println!("connecting to {}", cfg.db_url);
-    let client = MongoClient::with_uri_str(&cfg.db_url)?;
+    let client = MongoClient::with_uri_str(uri)?;
     Ok(client)
 }
 
