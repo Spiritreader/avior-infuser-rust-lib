@@ -1,6 +1,7 @@
 pub mod db;
 pub mod log;
 pub use mongodb::sync::Client as MongoClient;
+pub use mongodb::error::Error as MongoError;
 
 use std::{
     collections::{BTreeMap, HashMap},
