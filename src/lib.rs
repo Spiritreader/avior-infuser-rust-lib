@@ -145,9 +145,11 @@ fn convert_oid<S>(x: &bson::oid::ObjectId, s: S) -> Result<S::Ok, S::Error> wher
 pub fn get_eligible_client(
     grouped_clients: &BTreeMap<i32, HashMap<Client, Option<i32>>>
 ) -> Result<(&Client, i32, i32), Box<dyn Error>> {
+    // loop over priority group
     for (_, clients) in grouped_clients {
         let mut eligible_job_count = i32::MAX;
         let mut eligible: Option<&Client> = None;
+        // loop over clients in priority group
         for (client, current_job_count) in clients {
             if !client.online && !client.ignore_online {
                 continue;
