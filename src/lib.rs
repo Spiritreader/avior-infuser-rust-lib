@@ -118,7 +118,7 @@ pub struct AssignedClientJson {
 
 impl From<AssignedClient> for AssignedClientJson {
     fn from(ac: AssignedClient) -> Self {
-        AssignedClientJson { id: ac.id, collection: ac.collection, db: ac.db } 
+        AssignedClientJson { id: ac.id, collection: ac.collection, db: ac.db }
     }
 }
 
@@ -210,7 +210,7 @@ mod tests {
     fn test_insert() -> Result<(), Box<dyn Error>> {
         let mongo_client = db::connect("mongodb://192.168.178.75:27107")?;
         if let Some(res) = db::get_clients(&mongo_client, &config.db_name)?.get(0) {
-            let iid = db::insert_job(&mongo_client, &config.db_name, res, 
+            let iid = db::insert_job(&mongo_client, &config.db_name,
                 &mut db::Job {
                     id: None,
                     path: "\\\\vdr-u\\SDuRec\\Recording\\exists\\Geheimnisvolle Wildblumen_2021-04-10-14-58-01-arte HD (AC3,deu).ts".to_string(),
