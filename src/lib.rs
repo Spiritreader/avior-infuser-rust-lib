@@ -142,15 +142,18 @@ fn convert_oid<S>(x: &bson::oid::ObjectId, s: S) -> Result<S::Ok, S::Error> wher
 /// - with the lowest jobcount
 /// - that is online or has the ignore_online flag enabled
 /// - that hasn't reached its maximum job count
-pub fn get_eligible_client(
-    grouped_clients: &BTreeMap<i32, HashMap<Client, Option<i32>>>
-) -> Result<(&Client, i32, i32), InfuserError> {
+///
+/// Returns a tuple containing the client, the current job count and maximum job count
+pub fn get_eligible_client<'a>(grouped_clients: &'a BTreeMap<i32, HashMap<Client, Option<i32>>>, ignored_clients: &Vec<Client>) -> Result<(&'a Client, i32, i32), InfuserError> {
     // loop over priority group
     for (_, clients) in grouped_clients {
         let mut eligible_job_count = i32::MAX;
         let mut eligible: Option<&Client> = None;
         // loop over clients in priority group
         for (client, current_job_count) in clients {
+            if ignored_clients.iter().any(|c| c == client) {
+                continue;
+            }
             if !client.online && !client.ignore_online {
                 continue;
             }
