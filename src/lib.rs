@@ -144,7 +144,7 @@ fn convert_oid<S>(x: &bson::oid::ObjectId, s: S) -> Result<S::Ok, S::Error> wher
 /// - that hasn't reached its maximum job count
 pub fn get_eligible_client(
     grouped_clients: &BTreeMap<i32, HashMap<Client, Option<i32>>>
-) -> Result<(&Client, i32, i32), Box<dyn Error>> {
+) -> Result<(&Client, i32, i32), InfuserError> {
     // loop over priority group
     for (_, clients) in grouped_clients {
         let mut eligible_job_count = i32::MAX;
@@ -174,9 +174,9 @@ pub fn get_eligible_client(
         }
     }
     // if no client has been found, return an error
-    Err(Box::new(InfuserError {
+    Err(InfuserError {
         message: "no eligible client found".to_string(),
-    }))
+    })
 }
 
 pub fn group_clients(client_vec: Vec<Client>, machine_jobcounts: HashMap<String, i32>) -> BTreeMap<i32, HashMap<Client, Option<i32>>> {
